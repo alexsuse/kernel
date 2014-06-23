@@ -10,7 +10,8 @@ d>B. Then everything is done numerically. AWESOMES!
 """
 
 import numpy
-import matplotlib.pyplot as plt
+import prettyplotlib as ppl
+from prettyplotlib import plt
 
 def SquaredDistance(f,g):
     """
@@ -37,19 +38,51 @@ def IterateOnce(C, K0, dx, la = 1.0, alpha=1.0):
 
 if __name__=="__main__":
     k = 2.0
-    K = lambda x : (1.0+k*numpy.abs(x))*numpy.exp(-k*numpy.abs(x))/(4*k**3)
-    K0 = numpy.vectorize(K)
-    dx = 0.01
-    xs = numpy.arange(0.0,10000*dx,dx)
-    C0 = K0(xs)
-    C1 = IterateOnce(C0, K0, dx,alpha=0.1)
-    dist = SquaredDistance(C0,C1)
+    K_rbf = lambda x : numpy.exp(-k*x**2)
+    K_matern = lambda x : (1.0+k*numpy.abs(x))*numpy.exp(-k*numpy.abs(x))
+    K_ou = lambda x : numpy.exp(-k*numpy.abs(x))
+    dx = 0.0005
+    xs = numpy.arange(0.0,6000*dx,dx)
+    rbf0 = K_rbf(xs)
+    rbf1 = IterateOnce(rbf0, K_rbf, dx,alpha=0.1)
+    dist = SquaredDistance(rbf0,rbf1)
     while dist > 1e-10:
-        C0 = C1
-        C1 = IterateOnce(C0, K0, dx,alpha =0.1)
-        dist = SquaredDistance(C0,C1)
+        rbf0 = rbf1
+        rbf1 = IterateOnce(rbf0, K_rbf, dx,alpha =0.1)
+        dist = SquaredDistance(rbf0,rbf1)
         print dist
 
-    plt.plot(xs,(K0(xs)),xs,(C1))
-    plt.show()
+    matern0 = K_matern(xs)
+    matern1 = IterateOnce(matern0, K_matern, dx,alpha=0.1)
+    dist = SquaredDistance(matern0,matern1)
+    while dist > 1e-10:
+        matern0 = matern1
+        matern1 = IterateOnce(matern0, K_matern, dx,alpha =0.1)
+        dist = SquaredDistance(matern0,matern1)
+        print dist
 
+    OU0 = K_ou(xs)
+    OU1 = IterateOnce(OU0, K_ou, dx,alpha=0.1)
+    dist = SquaredDistance(OU0,OU1)
+    while dist > 1e-10:
+        OU0 = OU1
+        OU1 = IterateOnce(OU0, K_ou, dx,alpha =0.1)
+        dist = SquaredDistance(OU0,OU1)
+        print dist
+
+    ax1 = plt.subplot(311)
+    ax2 = plt.subplot(312)
+    ax3 = plt.subplot(313)
+    plt.gcf().suptitle("Posterior kernels")
+
+    ax1.plot(xs,K_ou(xs),label=r'OU prior kernel')
+    ax1.plot(xs,OU1,label = r'OU posterior kernel')
+    ax1.legend()
+    ax2.plot(xs,K_matern(xs),label=r'Matern prior kernel')
+    ax2.plot(xs,matern1, label=r'Matern posterior kernel')
+    ax2.legend()
+    ax3.plot(xs,K_rbf(xs),label=r'RBF prior kernel')
+    ax3.plot(xs,rbf1,label=r'RBF posterior kernel')
+    ax3.legend()
+
+    plt.savefig("figure_3_3.eps")
