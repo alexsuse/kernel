@@ -31,11 +31,11 @@ if __name__=="__main__":
     dx = 0.0005
     xs = numpy.arange(0.0,6000*dx,dx)
     
-    dalpha = 0.1
+    dalpha = 0.05
     dphi = 0.1
 
     alphas = numpy.arange(0.01,3.0,dalpha)
-    phis = numpy.arange(0.01,2.0,dalpha)
+    phis = numpy.arange(0.1,2.01,dphi)
 
     eps = numpy.zeros((alphas.size,phis.size))
 
@@ -59,25 +59,52 @@ if __name__=="__main__":
     import prettyplotlib as ppl
     from prettyplotlib import plt
     from prettyplotlib import brewer2mpl
+    
+    font = {'size':16}
+    plt.rc('font',**font)
 
-    fig, (ax1,ax2) = ppl.subplots(2,figsize=(20,8))
+    fig, (ax1,ax2) = ppl.subplots(1,2,figsize=(20,8))
 
 
-    alphas2,phis2 = np.meshgrid(np.arange(alphas.min(),alphas.max()+dalpha,dalpha)\
+    alphas2,phis2 = numpy.meshgrid(numpy.arange(alphas.min(),alphas.max()+dalpha,dalpha)\
                                                -dalpha/2,
-                                np.arange(phis.min(),phis.max()+dphi,dphi)-dphi/2)
+                                numpy.arange(phis.min(),phis.max()+dphi,dphi)-dphi/2)
     yellorred = brewer2mpl.get_map('YlOrRd','Sequential',9).mpl_colormap
 
     p = ax1.pcolormesh(alphas2,phis2,eps.T,cmap=yellorred)
     ax1.axis([alphas2.min(),alphas2.max(),phis2.min(),phis2.max()])
 
     ax1.set_xlabel(r'$\alpha$')
+    ax1.set_ylabel(r'$\phi$')
+
+    ax1.set_title(r'MMSE ($\epsilon$)')
+    ax2.set_title(r'MMSE as a function of $\alpha$')
+    cb = plt.colorbar(p, ax=ax1) 
+    #cb.set_ticks(numpy.array([0.3,0.4,0.5]))
+    #cb.set_ticklabels(numpy.array([0.3,0.4,0.5]))
+
+    ax1.set_xlabel(r'$\alpha$')
     ax2.set_ylabel(r'$\phi$')
 
-    ppl.plot(alphas, eps[:,1], label=r'$\phi = '+str(phis[1])+r'$',ax=ax2)
-    ppl.plot(alphas, eps[:,10], label=r'$\phi = '+str(phis[10])+r'$',ax=ax2)
-    ppl.plot(alphas, eps[:,-1], label=r'$\phi = '+str(phis[-1])+r'$',ax=ax2)
+    l1, = ppl.plot(alphas, eps[:,1], label=r'$\phi = '+str(phis[1])+r'$',ax=ax2)
+    c1 = l1.get_color()
     
+    indmin = numpy.argmin(eps[:,1])
+    ppl.plot(alphas[indmin],eps[indmin,1],'o',color=c1)
+
+    l2, = ppl.plot(alphas, eps[:,9], label=r'$\phi = '+str(phis[9])+r'$',ax=ax2)
+    c2 = l2.get_color()
+    
+    indmin = numpy.argmin(eps[:,9])
+    ppl.plot(alphas[indmin],eps[indmin,9],'o',color=c2)
+    l3, = ppl.plot(alphas, eps[:,-1], label=r'$\phi = '+str(phis[-1])+r'$',ax=ax2)
+    c3 = l3.get_color()
+    
+    indmin = numpy.argmin(eps[:,-1])
+    ppl.plot(alphas[indmin],eps[indmin,-1],'o',color=c3)
+   
+    ppl.legend(ax2)
+
     ax2.set_xlabel(r'$\alpha$')
     ax2.set_ylabel(r'$\epsilon$')
 
