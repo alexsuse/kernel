@@ -10,12 +10,10 @@ d>B. Then everything is done numerically. AWESOMES!
 """
 
 import numpy
-import prettyplotlib as ppl
+import cPickle as pic
 from kernel import SquaredDistance, IterateOnce
-from prettyplotlib import plt
-from prettyplotlib import brewer2mpl
 
-def get_eq_RBF_eps(K_rbf, dx, alpha, la):
+def get_eq_RBF_eps(K_rbf, xs, dx, alpha, la):
 
     rbf0 = K_rbf(xs)
     rbf1 = IterateOnce(rbf0, K_rbf, dx,alpha=alpha, la=la)
@@ -39,6 +37,8 @@ if __name__=="__main__":
     alphas = numpy.arange(0.01,3.0,dalpha)
     phis = numpy.arange(0.01,2.0,dalpha)
 
+    eps = numpy.zeros((alphas.size,phis.size))
+
     try:
         fi = open("rbf_eps.pik","rb")
         print "Found pickle, skipping simulation"
@@ -55,6 +55,10 @@ if __name__=="__main__":
 
         with open("rbf_eps.pik","wb") as fi:
             pic.dump(eps,fi)
+
+    import prettyplotlib as ppl
+    from prettyplotlib import plt
+    from prettyplotlib import brewer2mpl
 
     fig, (ax1,ax2) = ppl.subplots(2,figsize=(20,8))
 
