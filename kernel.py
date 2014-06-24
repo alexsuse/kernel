@@ -46,11 +46,14 @@ def MakeGram(t,K):
 def MakeVector(t,K):
     return K(t)
 
-def GetStochasticEps(K, alpha, la, dt, N, maxtimes=50):
+def GetStochasticEps(params):
+    alpha, la, dt, N = params
+    K = lambda x : numpy.exp(-2.0*numpy.array(x)**2)
+    maxtimes = 60
     eps = numpy.zeros(N)
     eps[:] = K(0)
     times = []
-    while len(times) < maxtimes/2:
+    while len(times) < maxtimes:
         times = map(lambda x: x+dt, times)
         if numpy.random.rand() < la*dt:
             times.append(0)
@@ -65,7 +68,7 @@ def GetStochasticEps(K, alpha, la, dt, N, maxtimes=50):
                 times = times[1:]
         if times:
             G = MakeGram(times,K)
-            C = G + numpy.eye(G.shape[0])
+            C = G + alpha**2*numpy.eye(G.shape[0])
             eps[i] = K(0) - numpy.dot(K(times),numpy.linalg.solve(G,K(times)))
     return numpy.mean(eps)
     
