@@ -12,9 +12,12 @@ d>B. Then everything is done numerically. AWESOMES!
 import numpy
 import cPickle as pic
 from kernel import SquaredDistance, IterateOnce, GetStochasticEps
+import multiprocessing as mp
 
-def get_eq_RBF_eps(K_rbf, xs, dx, alpha, la):
+def get_eq_RBF_eps(params):
+    xs, dx, alpha, la = params
 
+    K_rbf = lambda x : numpy.exp(-2.0*numpy.array(x)**2)
     rbf0 = K_rbf(xs)
     rbf1 = IterateOnce(rbf0, K_rbf, dx,alpha=alpha, la=la)
     dist = SquaredDistance(rbf0,rbf1)
@@ -27,11 +30,11 @@ def get_eq_RBF_eps(K_rbf, xs, dx, alpha, la):
 
 if __name__=="__main__":
     k = 2.0
-    K_rbf = lambda x : numpy.exp(-k*numpy.array(x)**2)
+    K_rbf = lambda x : numpy.exp(-2.0*numpy.array(x)**2)
     dx = 0.0005
     xs = numpy.arange(0.0,6000*dx,dx)
     
-    dalpha = 0.05
+    dalpha = 0.1
     dphi = 0.1
 
     alphas = numpy.arange(0.01,3.0,dalpha)
@@ -47,22 +50,35 @@ if __name__=="__main__":
     except:
         print "No pickle, rerunning"
         
+        ncpus = mp.cpu_count()
+        pool = mp.Pool(processes=ncpus)
+
+        print "Running on a pool of "+str(ncpus)+" cpus"
+
         stoc_eps_02 = numpy.zeros_like(alphas)
         stoc_eps_10 = numpy.zeros_like(alphas)
         stoc_eps_20 = numpy.zeros_like(alphas)
 
         for i,a in enumerate(alphas):
-            for j,p in enumerate(phis):
-                print i,j
-                la = numpy.sqrt(2*numpy.pi)*a*p
-                eps[i,j] = get_eq_RBF_eps(K_rbf, xs, dx, a, la)
+            print i
+            params = [(xs,dx,a,numpy.sqrt(2*numpy.pi)*a*p) for p in phis]
+            eps[i,:] = numpy.array(pool.map(get_eq_RBF_eps,params))
+            #for j,p in enumerate(phis):
+            #    print i,j
+            #    la = numpy.sqrt(2*numpy.pi)*a*p
+            #    eps[i,j] = get_eq_RBF_eps(K_rbf, xs, dx, a, la)
 
-            la = numpy.sqrt(2*numpy.pi)*a*phis[1]
-            stoc_eps_02[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
-            la = numpy.sqrt(2*numpy.pi)*a*phis[9]
-            stoc_eps_10[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
-            la = numpy.sqrt(2*numpy.pi)*a*phis[-1]
-            stoc_eps_20[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
+            params = [(a,numpy.sqrt(2*numpy.pi)*a*ph,0.001,40000) for ph in [phis[1],phis[9],phis[-1]]]
+            results = pool.map(GetStochasticEps,params)
+            stoc_eps_02[i] = results[0]
+            stoc_eps_10[i] = results[1]
+            stoc_eps_20[i] = results[2]
+            #la = numpy.sqrt(2*numpy.pi)*a*phis[1]
+            #stoc_eps_02[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
+            #la = numpy.sqrt(2*numpy.pi)*a*phis[9]
+            #stoc_eps_10[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
+            #la = numpy.sqrt(2*numpy.pi)*a*phis[-1]
+            #stoc_eps_20[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
 
 
         with open("rbf_eps_stoc.pik","wb") as fi:
