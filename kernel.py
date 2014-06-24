@@ -60,15 +60,15 @@ def GetStochasticEps(params):
 
     for i in range(N):
         times = map(lambda x: x+dt, times)
-        if numpy.random.rand() < la*dt:
-            times.append(0)
-            if len(times) > maxtimes:
-                times = times[1:]
         if times:
             G = MakeGram(times,K)
             C = G + alpha**2*numpy.eye(G.shape[0])
             eps[i] = K(0) - numpy.dot(K(times),numpy.linalg.solve(C,K(times)))
-    return eps
+        if numpy.random.rand() < la*dt:
+            times.append(0)
+            if len(times) > maxtimes:
+                times = times[1:]
+    return numpy.mean(eps)
     
     
 

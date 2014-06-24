@@ -9,6 +9,7 @@ C over a range from 0 to B, and assuming C = 0 for
 d>B. Then everything is done numerically. AWESOMES!
 """
 
+import sys
 import numpy
 import cPickle as pic
 from kernel import SquaredDistance, IterateOnce, GetStochasticEps
@@ -43,9 +44,16 @@ if __name__=="__main__":
     eps = numpy.zeros((alphas.size,phis.size))
 
     try:
-        fi = open("rbf_eps_stoc.pik","rb")
+        sys.argv[1]
+        finame = sys.argv[1]
+    except:
+        finame = "rbf_eps_stoc.pik"
+
+    try:
+        fi = open(finame,"rb")
         print "Found pickle, skipping simulation"
         eps,stoc_eps_02,stoc_eps_10,stoc_eps_20 = pic.load(fi)
+        print 'all good with the pickle'
 
     except:
         print "No pickle, rerunning"
@@ -54,14 +62,10 @@ if __name__=="__main__":
         pool = mp.Pool(processes=ncpus)
 
         print "Running on a pool of "+str(ncpus)+" cpus"
-
-        stoc_eps_02 = numpy.zeros_like(alphas)
-        stoc_eps_10 = numpy.zeros_like(alphas)
-        stoc_eps_20 = numpy.zeros_like(alphas)
         
-        params02 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[1],0.001,40000) for a in alphas]
-        params10 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[9],0.001,40000) for a in alphas]
-        params20 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[-1],0.001,40000) for a in alphas]
+        params02 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[1],0.0001,400000) for a in alphas]
+        params10 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[9],0.0001,400000) for a in alphas]
+        params20 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[-1],0.0001,400000) for a in alphas]
         stoc_eps_02 = numpy.array(pool.map(GetStochasticEps,params02))
         stoc_eps_10 = numpy.array(pool.map(GetStochasticEps,params10))
         stoc_eps_20 = numpy.array(pool.map(GetStochasticEps,params20))
@@ -83,13 +87,15 @@ if __name__=="__main__":
             #stoc_eps_20[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
 
 
-        with open("rbf_eps_stoc.pik","wb") as fi:
+        with open(finame,"wb") as fi:
             pic.dump([eps,stoc_eps_02,stoc_eps_10,stoc_eps_20],fi)
 
     import prettyplotlib as ppl
     from prettyplotlib import plt
     from prettyplotlib import brewer2mpl
-    
+
+    print 'imported'
+
     font = {'size':16}
     plt.rc('font',**font)
 
@@ -99,6 +105,9 @@ if __name__=="__main__":
     alphas2,phis2 = numpy.meshgrid(numpy.arange(alphas.min(),alphas.max()+dalpha,dalpha)\
                                                -dalpha/2,
                                 numpy.arange(phis.min(),phis.max()+dphi,dphi)-dphi/2)
+
+    print 'mesh is good'
+
     yellorred = brewer2mpl.get_map('YlOrRd','Sequential',9).mpl_colormap
 
     p = ax1.pcolormesh(alphas2,phis2,eps.T,cmap=yellorred)
