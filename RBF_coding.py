@@ -27,7 +27,7 @@ def get_eq_RBF_eps(K_rbf, xs, dx, alpha, la):
 
 if __name__=="__main__":
     k = 2.0
-    K_rbf = lambda x : numpy.exp(-k*x**2)
+    K_rbf = lambda x : numpy.exp(-k*numpy.array(x)**2)
     dx = 0.0005
     xs = numpy.arange(0.0,6000*dx,dx)
     
@@ -46,6 +46,10 @@ if __name__=="__main__":
 
     except:
         print "No pickle, rerunning"
+        
+        stoc_eps_02 = numpy.zeros_like(alphas)
+        stoc_eps_10 = numpy.zeros_like(alphas)
+        stoc_eps_20 = numpy.zeros_like(alphas)
 
         for i,a in enumerate(alphas):
             for j,p in enumerate(phis):
@@ -53,18 +57,13 @@ if __name__=="__main__":
                 la = numpy.sqrt(2*numpy.pi)*a*p
                 eps[i,j] = get_eq_RBF_eps(K_rbf, xs, dx, a, la)
 
-        stoc_eps_02 = numpy.zeros_like(alphas)
-        stoc_eps_10 = numpy.zeros_like(alphas)
-        stoc_eps_20 = numpy.zeros_like(alphas)
+            la = numpy.sqrt(2*numpy.pi)*a*phis[1]
+            stoc_eps_02[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
+            la = numpy.sqrt(2*numpy.pi)*a*phis[9]
+            stoc_eps_10[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
+            la = numpy.sqrt(2*numpy.pi)*a*phis[-1]
+            stoc_eps_20[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
 
-        for phi in [phis[1],phis[9],phis[-1]]:
-            for i,a in enumerate(alphas):
-                la = numpy.sqrt(2*numpy.pi)*a*phis[1]
-                stoc_eps_02[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
-                la = numpy.sqrt(2*numpy.pi)*a*phis[9]
-                stoc_eps_10[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
-                la = numpy.sqrt(2*numpy.pi)*a*phis[-1]
-                stoc_eps_20[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
 
         with open("rbf_eps_stoc.pik","wb") as fi:
             pic.dump([eps,stoc_eps_02,stoc_eps_10,stoc_eps_20],fi)
