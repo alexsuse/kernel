@@ -67,15 +67,16 @@ def GetStochasticEps(params):
         if times:
             G = MakeGram(times,K)
             C = G + alpha**2*numpy.eye(G.shape[0])
-            eps[i] = K(0) - numpy.dot(K(times),numpy.linalg.solve(G,K(times)))
-    return numpy.mean(eps)
+            eps[i] = K(0) - numpy.dot(K(times),numpy.linalg.solve(C,K(times)))
+    return eps
     
     
 
 if __name__=="__main__":
     k = 2.0
     K_rbf = lambda x : numpy.exp(-k*numpy.array(x)**2)
-    print GetStochasticEps(K_rbf, 0.1,1.0,0.01,10000)
+    plt.plot(GetStochasticEps(( 0.3,0.4,0.01,10000)))
+    plt.show()
     K_matern = lambda x : (1.0+k*numpy.abs(x))*numpy.exp(-k*numpy.abs(x))
     K_ou = lambda x : numpy.exp(-k*numpy.abs(x))
     dx = 0.0005
