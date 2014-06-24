@@ -11,7 +11,7 @@ d>B. Then everything is done numerically. AWESOMES!
 
 import numpy
 import cPickle as pic
-from kernel import SquaredDistance, IterateOnce
+from kernel import SquaredDistance, IterateOnce, GetStochasticEps
 
 def get_eq_RBF_eps(K_rbf, xs, dx, alpha, la):
 
@@ -40,9 +40,9 @@ if __name__=="__main__":
     eps = numpy.zeros((alphas.size,phis.size))
 
     try:
-        fi = open("rbf_eps.pik","rb")
+        fi = open("rbf_eps_stoc.pik","rb")
         print "Found pickle, skipping simulation"
-        eps = pic.load(fi)
+        eps,stoc_eps_02,stoc_eps_10,stoc_eps_20 = pic.load(fi)
 
     except:
         print "No pickle, rerunning"
@@ -53,8 +53,21 @@ if __name__=="__main__":
                 la = numpy.sqrt(2*numpy.pi)*a*p
                 eps[i,j] = get_eq_RBF_eps(K_rbf, xs, dx, a, la)
 
-        with open("rbf_eps.pik","wb") as fi:
-            pic.dump(eps,fi)
+        stoc_eps_02 = numpy.zeros_like(alphas)
+        stoc_eps_10 = numpy.zeros_like(alphas)
+        stoc_eps_20 = numpy.zeros_like(alphas)
+
+        for phi in [phis[1],phis[9],phis[-1]]:
+            for i,a in enumerate(alphas):
+                la = numpy.sqrt(2*numpy.pi)*a*phis[1]
+                stoc_eps_02[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
+                la = numpy.sqrt(2*numpy.pi)*a*phis[9]
+                stoc_eps_10[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
+                la = numpy.sqrt(2*numpy.pi)*a*phis[-1]
+                stoc_eps_20[i] = GetStochasticEps(K_rbf,a,la,0.001,10000)
+
+        with open("rbf_eps_stoc.pik","wb") as fi:
+            pic.dump([eps,stoc_eps_02,stoc_eps_10,stoc_eps_20],fi)
 
     import prettyplotlib as ppl
     from prettyplotlib import plt
@@ -88,17 +101,21 @@ if __name__=="__main__":
 
     l1, = ppl.plot(alphas, eps[:,1], label=r'$\phi = '+str(phis[1])+r'$',ax=ax2)
     c1 = l1.get_color()
+    ppl.plot(alphas,stoc_eps_02, '.-', color=c1)
     
     indmin = numpy.argmin(eps[:,1])
     ppl.plot(alphas[indmin],eps[indmin,1],'o',color=c1)
 
     l2, = ppl.plot(alphas, eps[:,9], label=r'$\phi = '+str(phis[9])+r'$',ax=ax2)
     c2 = l2.get_color()
+    ppl.plot(alphas,stoc_eps_10, '.-', color=c2)
     
     indmin = numpy.argmin(eps[:,9])
     ppl.plot(alphas[indmin],eps[indmin,9],'o',color=c2)
+    
     l3, = ppl.plot(alphas, eps[:,-1], label=r'$\phi = '+str(phis[-1])+r'$',ax=ax2)
     c3 = l3.get_color()
+    ppl.plot(alphas,stoc_eps_20, '.-', color=c3)
     
     indmin = numpy.argmin(eps[:,-1])
     ppl.plot(alphas[indmin],eps[indmin,-1],'o',color=c3)

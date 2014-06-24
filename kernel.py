@@ -36,9 +36,45 @@ def IterateOnce(C, K0, dx, la = 1.0, alpha=1.0):
         newC[i] += K0(i*dx)
     return newC
 
+def MakeGram(t,K):
+    if not t:
+        return numpy.array([[0]])
+    ts = numpy.tile(t,(len(t),1))
+    tsl = numpy.tile(numpy.array(t).reshape((len(t),1)),(1,len(t)))
+    return K(ts-tsl)
+
+def MakeVector(t,K):
+    return K(t)
+
+def GetStochasticEps(K, alpha, la, dt, N, maxtimes=50):
+    eps = numpy.zeros(N)
+    eps[:] = K(0)
+    times = []
+    while len(times) < maxtimes/2:
+        times = map(lambda x: x+dt, times)
+        if numpy.random.rand() < la*dt:
+            times.append(0)
+            if len(times) > maxtimes:
+                times = times[1:]
+
+    for i in range(N):
+        times = map(lambda x: x+dt, times)
+        if numpy.random.rand() < la*dt:
+            times.append(0)
+            if len(times) > maxtimes:
+                times = times[1:]
+        if times:
+            G = MakeGram(times,K)
+            C = G + numpy.eye(G.shape[0])
+            eps[i] = K(0) - numpy.dot(K(times),numpy.linalg.solve(G,K(times)))
+    return numpy.mean(eps)
+    
+    
+
 if __name__=="__main__":
     k = 2.0
-    K_rbf = lambda x : numpy.exp(-k*x**2)
+    K_rbf = lambda x : numpy.exp(-k*numpy.array(x)**2)
+    print GetStochasticEps(K_rbf, 0.1,1.0,0.01,10000)
     K_matern = lambda x : (1.0+k*numpy.abs(x))*numpy.exp(-k*numpy.abs(x))
     K_ou = lambda x : numpy.exp(-k*numpy.abs(x))
     dx = 0.0005
