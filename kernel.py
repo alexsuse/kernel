@@ -43,13 +43,11 @@ def MakeGram(t,K):
     tsl = numpy.tile(numpy.array(t).reshape((len(t),1)),(1,len(t)))
     return K(ts-tsl)
 
-def MakeVector(t,K):
-    return K(t)
-
 def GetStochasticEps(params):
     alpha, la, dt, N = params
-    K = lambda x : numpy.exp(-2.0*numpy.array(x)**2)
-    maxtimes = 60
+    print alpha, la, dt, N
+    K = lambda x : numpy.exp(-0.2*numpy.array(x)**2)
+    maxtimes = 20
     eps = numpy.zeros(N)
     eps[:] = K(0)
     times = []

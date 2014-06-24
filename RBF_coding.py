@@ -58,6 +58,13 @@ if __name__=="__main__":
         stoc_eps_02 = numpy.zeros_like(alphas)
         stoc_eps_10 = numpy.zeros_like(alphas)
         stoc_eps_20 = numpy.zeros_like(alphas)
+        
+        params02 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[1],0.001,40000) for a in alphas]
+        params10 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[9],0.001,40000) for a in alphas]
+        params20 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[-1],0.001,40000) for a in alphas]
+        stoc_eps_02 = numpy.array(pool.map(GetStochasticEps,params02))
+        stoc_eps_10 = numpy.array(pool.map(GetStochasticEps,params10))
+        stoc_eps_20 = numpy.array(pool.map(GetStochasticEps,params20))
 
         for i,a in enumerate(alphas):
             print i
@@ -68,11 +75,6 @@ if __name__=="__main__":
             #    la = numpy.sqrt(2*numpy.pi)*a*p
             #    eps[i,j] = get_eq_RBF_eps(K_rbf, xs, dx, a, la)
 
-            params = [(a,numpy.sqrt(2*numpy.pi)*a*ph,0.001,40000) for ph in [phis[1],phis[9],phis[-1]]]
-            results = pool.map(GetStochasticEps,params)
-            stoc_eps_02[i] = results[0]
-            stoc_eps_10[i] = results[1]
-            stoc_eps_20[i] = results[2]
             #la = numpy.sqrt(2*numpy.pi)*a*phis[1]
             #stoc_eps_02[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
             #la = numpy.sqrt(2*numpy.pi)*a*phis[9]
