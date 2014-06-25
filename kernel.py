@@ -44,13 +44,17 @@ def MakeGram(t,K):
     return K(ts-tsl)
 
 def GetStochasticEps(params):
+
     alpha, la, dt, N = params
-    print alpha, la, dt, N
+    
+    numpy.random.seed(12345678)
+    
     K = lambda x : numpy.exp(-2*numpy.array(x)**2)
     maxtimes = 20
     eps = numpy.zeros(N)
     eps[:] = K(0)
     times = []
+    
     while len(times) < maxtimes:
         times = map(lambda x: x+dt, times)
         if numpy.random.rand() < la*dt:

@@ -63,9 +63,9 @@ if __name__=="__main__":
 
         print "Running on a pool of "+str(ncpus)+" cpus"
         
-        params02 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[1],0.0001,400000) for a in alphas]
-        params10 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[9],0.0001,400000) for a in alphas]
-        params20 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[-1],0.0001,400000) for a in alphas]
+        params02 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[1],0.0001,4000000) for a in alphas]
+        params10 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[9],0.0001,4000000) for a in alphas]
+        params20 = [(a,numpy.sqrt(2*numpy.pi)*a*phis[-1],0.0001,4000000) for a in alphas]
         stoc_eps_02 = numpy.array(pool.map(GetStochasticEps,params02))
         stoc_eps_10 = numpy.array(pool.map(GetStochasticEps,params10))
         stoc_eps_20 = numpy.array(pool.map(GetStochasticEps,params20))
