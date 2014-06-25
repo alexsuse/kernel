@@ -74,21 +74,11 @@ if __name__=="__main__":
             print i
             params = [(xs,dx,a,numpy.sqrt(2*numpy.pi)*a*p) for p in phis]
             eps[i,:] = numpy.array(pool.map(get_eq_RBF_eps,params))
-            #for j,p in enumerate(phis):
-            #    print i,j
-            #    la = numpy.sqrt(2*numpy.pi)*a*p
-            #    eps[i,j] = get_eq_RBF_eps(K_rbf, xs, dx, a, la)
-
-            #la = numpy.sqrt(2*numpy.pi)*a*phis[1]
-            #stoc_eps_02[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
-            #la = numpy.sqrt(2*numpy.pi)*a*phis[9]
-            #stoc_eps_10[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
-            #la = numpy.sqrt(2*numpy.pi)*a*phis[-1]
-            #stoc_eps_20[i] = GetStochasticEps(K_rbf,a,la,0.001,40000)
 
 
         with open(finame,"wb") as fi:
             pic.dump([eps,stoc_eps_02,stoc_eps_10,stoc_eps_20],fi)
+            print "dumped the pickle"
 
     import prettyplotlib as ppl
     from prettyplotlib import plt

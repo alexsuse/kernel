@@ -46,7 +46,7 @@ def MakeGram(t,K):
 def GetStochasticEps(params):
     alpha, la, dt, N = params
     print alpha, la, dt, N
-    K = lambda x : numpy.exp(-0.2*numpy.array(x)**2)
+    K = lambda x : numpy.exp(-2*numpy.array(x)**2)
     maxtimes = 20
     eps = numpy.zeros(N)
     eps[:] = K(0)
